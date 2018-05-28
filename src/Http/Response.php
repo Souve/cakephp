@@ -787,45 +787,6 @@ class Response implements ResponseInterface
     }
 
     /**
-     * Sets whether a response is eligible to be cached by intermediate proxies
-     * This method controls the `public` or `private` directive in the Cache-Control
-     * header
-     *
-     * @param bool|null $public If set to true, the Cache-Control header will be set as public
-     *   if set to false, the response will be set to private
-     *   if no value is provided, it will return whether the response is sharable or not
-     * @param int|null $time time in seconds after which the response should no longer be considered fresh
-     * @return bool|null
-     */
-    public function sharable($public = null, $time = null)
-    {
-        if ($public === null) {
-            $public = array_key_exists('public', $this->_cacheDirectives);
-            $private = array_key_exists('private', $this->_cacheDirectives);
-            $noCache = array_key_exists('no-cache', $this->_cacheDirectives);
-            if (!$public && !$private && !$noCache) {
-                return null;
-            }
-
-            return $public || !($private || $noCache);
-        }
-        if ($public) {
-            $this->_cacheDirectives['public'] = true;
-            unset($this->_cacheDirectives['private']);
-        } else {
-            $this->_cacheDirectives['private'] = true;
-            unset($this->_cacheDirectives['public']);
-        }
-
-        $this->maxAge($time);
-        if (!$time) {
-            $this->_setCacheControl();
-        }
-
-        return (bool)$public;
-    }
-
-    /**
      * Create a new instace with the public/private Cache-Control directive set.
      *
      * @param bool $public If set to true, the Cache-Control header will be set as public
@@ -865,28 +826,6 @@ class Response implements ResponseInterface
         $new->_setCacheControl();
 
         return $new;
-    }
-
-    /**
-     * Sets the Cache-Control max-age directive.
-     * The max-age is the number of seconds after which the response should no longer be considered
-     * a good candidate to be fetched from the local (client) cache.
-     * If called with no parameters, this function will return the current max-age value if any
-     *
-     * @param int|null $seconds if null, the method will return the current max-age value
-     * @return int|null
-     */
-    public function maxAge($seconds = null)
-    {
-        if ($seconds !== null) {
-            $this->_cacheDirectives['max-age'] = $seconds;
-            $this->_setCacheControl();
-        }
-        if (isset($this->_cacheDirectives['max-age'])) {
-            return $this->_cacheDirectives['max-age'];
-        }
-
-        return null;
     }
 
     /**
